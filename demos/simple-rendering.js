@@ -18,7 +18,7 @@ import {mat4, vec3, vec4} from "../node_modules/gl-matrix/esm/index.js";
 // **                       Data                       **
 // ******************************************************
 
-const positions = new Float32Array([
+/*const positions = new Float32Array([
     // front
     -0.5, 0.5, 0.5,
     0.5, 0.5, 0.5,
@@ -118,9 +118,9 @@ const indices = new Uint16Array([
     // right
     22, 21, 20,
     20, 23, 22,
-]);
+]);*/
 
-// import {positions, normals, indices} from "../blender/torus.js"
+ import {positions, normals, indices} from "../blender/torus.js"
 
 
 // ******************************************************
@@ -138,7 +138,7 @@ let fragmentShader = `
     
     void main()
     {
-        outColor = color;
+        outColor = color-0.3;
     }
 `;
 
@@ -162,9 +162,11 @@ let vertexShader = `
     
     out vec4 color;
     
+    
+    
     void main()
     {
-        gl_Position = modelViewProjectionMatrix * vec4(position, 1.0);
+        gl_Position = modelViewProjectionMatrix * vec4(position, 2.0-sin(time));
         vec3 viewNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
         color = mix(bgColor * 0.8, fgColor, viewNormal.z) + pow(viewNormal.z, 20.0);
     }
@@ -175,8 +177,8 @@ let vertexShader = `
 // **             Application processing               **
 // ******************************************************
 
-let bgColor = vec4.fromValues(1.0, 0.2, 0.3, 1.0);
-let fgColor = vec4.fromValues(1.0, 0.9, 0.5, 1.0);
+let bgColor = vec4.fromValues(0.1, 0.2, 0.3, 0.1);
+let fgColor = vec4.fromValues(1.0, 0.9, 0.3, 1.0);
 
 
 app.clearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3])
@@ -211,7 +213,7 @@ function draw() {
     let time = new Date().getTime() / 1000 - startTime;
 
     mat4.perspective(projMatrix, Math.PI / 4, app.width / app.height, 0.1, 100.0);
-    mat4.lookAt(viewMatrix, vec3.fromValues(3, 0, 2), vec3.fromValues(0, 0, 0), vec3.fromValues(0, 1, 0));
+    mat4.lookAt(viewMatrix, vec3.fromValues(3, Math.tan(time/2), 2), vec3.fromValues(Math.cos(time), Math.sin(time)/2, Math.sin(time)), vec3.fromValues(0, 1, 0));
     mat4.multiply(viewProjMatrix, projMatrix, viewMatrix);
 
     mat4.fromXRotation(rotateXMatrix, time * 0.1136);
