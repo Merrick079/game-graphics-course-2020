@@ -32,6 +32,7 @@ const skyboxIndices = new Uint16Array([
 let fragmentShader = `
     #version 300 es
     precision highp float;
+    uniform float time;
     
     uniform sampler2D tex;    
     
@@ -41,7 +42,8 @@ let fragmentShader = `
     
     void main()
     {        
-        outColor = texture(tex, v_uv);
+        outColor = texture(tex, (v_uv - 0.5) * tan(time))*0.5
+        + texture(tex, v_uv * 2.0)*0.8;
     }
 `;
 
@@ -69,6 +71,7 @@ let vertexShader = `
 let skyboxFragmentShader = `
     #version 300 es
     precision mediump float;
+    
     
     uniform samplerCube cubemap;
     uniform mat4 viewProjectionInverse;
@@ -125,14 +128,14 @@ async function loadTexture(fileName) {
 }
 
 (async () => {
-    const tex = await loadTexture("abstract.jpg");
+    const tex = await loadTexture("flower.jpg");
     let drawCall = app.createDrawCall(program, vertexArray)
         .texture("tex", app.createTexture2D(tex, tex.width, tex.height, {
             magFilter: PicoGL.LINEAR,
             minFilter: PicoGL.LINEAR_MIPMAP_LINEAR,
             maxAnisotropy: 10,
-            wrapS: PicoGL.REPEAT,
-            wrapT: PicoGL.REPEAT
+            wrapS: PicoGL.MIRRORED_REPEAT,
+            wrapT: PicoGL.MIRRORED_REPEAT
         }));
 
     let skyboxDrawCall = app.createDrawCall(skyboxProgram, skyboxArray)
@@ -174,6 +177,7 @@ async function loadTexture(fileName) {
         skyboxDrawCall.draw();
 
         app.enable(PicoGL.DEPTH_TEST);
+        drawCall.uniform("time", time);
         drawCall.uniform("modelViewProjectionMatrix", modelViewProjectionMatrix);
         drawCall.draw();
 
